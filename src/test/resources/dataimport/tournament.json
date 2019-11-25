@@ -1,0 +1,52 @@
+{
+  "fighters": [
+    {
+      "email": "email1",
+      "name": "name1",
+      "club": {
+        "name": "club1",
+        "city": {
+          "name": "city1"
+        }
+      },
+      "nominations": [
+        {
+          "name": "nomination1"
+        }
+      ]
+    },
+    {
+      "email": "email2",
+      "name": "name2",
+      "club": {
+        "name": "club2",
+        "city": {
+          "name": "city1"
+        }
+      },
+      "nominations": [
+        {
+          "name": "nomination2"
+        }
+      ]
+    },
+    {
+      "email": "email3",
+      "name": "name3",
+      "club": {
+        "name": "club3",
+        "city": {
+          "name": "city2"
+        }
+      },
+      "nominations": [
+        {
+          "name": "nomination1"
+        },
+        {
+          "name": "nomination2"
+        }
+      ]
+    }
+  ]
+}
