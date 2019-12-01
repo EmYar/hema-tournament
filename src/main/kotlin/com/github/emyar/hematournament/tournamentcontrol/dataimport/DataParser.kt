@@ -1,14 +1,15 @@
 package com.github.emyar.hematournament.tournamentcontrol.dataimport
 
+import com.github.emyar.hematournament.tournamentcontrol.Settings
 import com.github.emyar.hematournament.tournamentcontrol.model.*
 
-class DataParser {
+class DataParser(private val provider: DataProvider) {
 
     private val cities = mutableMapOf<String, City>()
     private val clubs = mutableMapOf<String, Club>()
     private val nominations = mutableMapOf<String, Nomination>()
 
-    fun parse(provider: DataProvider): Tournament {
+    fun parse(): Tournament {
         val result = provider.getDataToParse()
         val data = result.first
         val info = result.second
@@ -43,7 +44,7 @@ class DataParser {
     }
 
     private fun getNominations(nominationsString: String): List<Nomination> {
-        return nominationsString.split(ImportSettings.fighterNominationsDelimiter).asSequence()
+        return nominationsString.split(Settings.importSettings.getNominationsDelimiter()).asSequence()
                 .map {
                     val nominationName = it.trim()
                     if (nominations.contains(nominationName))

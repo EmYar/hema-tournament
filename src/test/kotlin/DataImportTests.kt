@@ -2,16 +2,13 @@ import com.github.emyar.hematournament.tournamentcontrol.dataimport.DataParser
 import com.github.emyar.hematournament.tournamentcontrol.dataimport.DataProvider
 import com.github.emyar.hematournament.tournamentcontrol.dataimport.ImportInfo
 import com.github.emyar.hematournament.tournamentcontrol.model.Tournament
-import kotlinx.serialization.UnstableDefault
+import io.kotlintest.shouldBe
+import io.kotlintest.specs.FunSpec
 import kotlinx.serialization.json.Json
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
 
-class DataImport {
+class DataImportTests : FunSpec({
 
-    @UnstableDefault
-    @Test
-    fun parsing() {
+    test("DataProvider should return valid Tournament object") {
         val dataProvider = object : DataProvider {
             override fun getDataToParse(): Pair<List<List<String>>, ImportInfo> {
                 val data = listOf(
@@ -24,9 +21,8 @@ class DataImport {
             }
         }
 
-        assertEquals(
-            Json.parse(Tournament.serializer(), javaClass.getResource("dataimport/tournament.json").readText()),
-            DataParser().parse(dataProvider)
-        )
+        @Suppress("EXPERIMENTAL_API_USAGE")
+        DataParser(dataProvider).parse() shouldBe
+                Json.parse(Tournament.serializer(), javaClass.getResource("/dataimport/tournament.json").readText())
     }
-}
+})
