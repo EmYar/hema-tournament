@@ -6,15 +6,12 @@ import java.io.FileWriter
 import java.nio.file.Paths
 import java.util.*
 import kotlin.collections.set
-import kotlin.reflect.KMutableProperty
-import kotlin.reflect.full.memberProperties
-import kotlin.reflect.jvm.isAccessible
 
 object Settings {
 
     private const val settingsVersion = 1
     @Language(value = "FILE REFERENCE")
-    private const val defaultSettingsPath = "/settingsdefaults.properties"
+    private const val defaultSettingsPath = "/settings_defaults.properties"
 
     private val settingsFile =
         Paths.get(System.getProperty("user.home"), ".hema-tournament", "settings.properties").toFile()
@@ -30,17 +27,18 @@ object Settings {
 
     fun save() {
         currentProperties["settingsVersion"] = settingsVersion.toString()
-        subsections.forEach { it.fillProperties() }
+        subsections.forEach { it.saveValuesToProperties() }
         if (!settingsFile.exists()) {
-            if (!settingsFile.parentFile.exists())
-                settingsFile.parentFile.mkdirs()
+            val parentFile = settingsFile.parentFile
+            if (!parentFile.exists())
+                parentFile.mkdirs()
             settingsFile.createNewFile()
         }
         currentProperties.store(FileWriter(settingsFile), "Save to settings file '$settingsFile'")
     }
 
     fun resetToDefault() {
-        TODO("Not yet implemented")
+        subsections.forEach { it.resetToDefaults() }
     }
 }
 
@@ -50,25 +48,17 @@ abstract class SettingsSection(
     private val defaultProperties: Properties
 ) {
 
-    private val fields = this::class.memberProperties.asSequence()
-        .filterIsInstance<KMutableProperty<String>>()
-        .filter { it.name != "settingsPrefix" }
-        .onEach { it.isAccessible = true }
-        .toList()
+    abstract fun saveValuesToProperties()
 
-    fun fillProperties() {
-        fields.forEach { currentProperties[settingsPrefix + it.name] = it.getter.call(this) }
+    abstract fun loadValuesFromProperties()
+
+    abstract fun resetToDefaults()
+
+    protected fun saveValue(key: String, value: String) {
+        currentProperties[settingsPrefix + key] = value
     }
 
-    fun loadValuesFromProperties() {
-        fields.forEach { it.setter.call(this, getCurrentValue(it.name)) }
-    }
-
-    fun resetToDefaults() {
-        fields.forEach { it.setter.call(this, defaultProperties[settingsPrefix + it.name]) }
-    }
-
-    protected fun getCurrentValue(key: String): String =
+    protected fun getValue(key: String): String =
         currentProperties[settingsPrefix + key] as String?
             ?: defaultProperties[settingsPrefix + key] as String
 
@@ -76,10 +66,8 @@ abstract class SettingsSection(
         defaultProperties[settingsPrefix + key] as String
 }
 
-class CommonSettings(
-    currentProperties: Properties,
-    defaultProperties: Properties
-) : SettingsSection("", currentProperties, defaultProperties) {
+class CommonSettings(currentProperties: Properties, defaultProperties: Properties) :
+    SettingsSection("", currentProperties, defaultProperties) {
 
     companion object {
         val supportedLocales = setOf(Locale("en", "EN"), Locale("ru", "RU"))
@@ -94,12 +82,22 @@ class CommonSettings(
             throw IllegalArgumentException("Language '$language' is not in supported list: $supportedLocales")
         this.language = language
     }
+
+    override fun saveValuesToProperties() {
+        saveValue("language", language)
+    }
+
+    override fun loadValuesFromProperties() {
+        language = getValue("language")
+    }
+
+    override fun resetToDefaults() {
+        language = getDefaultValue("language")
+    }
 }
 
-class ImportSettings(
-    currentProperties: Properties,
-    defaultProperties: Properties
-) : SettingsSection("import.", currentProperties, defaultProperties) {
+class ImportSettings(currentProperties: Properties, defaultProperties: Properties) :
+    SettingsSection("import.", currentProperties, defaultProperties) {
 
     val headersRangeDefault = getDefaultValue("headersRange")
     val dataRangeDefault = getDefaultValue("dataRange")
@@ -110,14 +108,14 @@ class ImportSettings(
     val nominationsColumnNameDefault = getDefaultValue("nominationsColumnName")
     val nominationsDelimiterDefault = getDefaultValue("nominationsDelimiter")
 
-    private var headersRange = getCurrentValue("headersRange")
-    private var dataRange = getCurrentValue("dataRange")
-    private var emailColumnName = getCurrentValue("emailColumnName")
-    private var fullNameColumnName = getCurrentValue("fullNameColumnName")
-    private var clubColumnName = getCurrentValue("clubColumnName")
-    private var clubCityColumnName = getCurrentValue("clubCityColumnName")
-    private var nominationsColumnName = getCurrentValue("nominationsColumnName")
-    private var nominationsDelimiter = getCurrentValue("nominationsDelimiter")
+    private var headersRange = getValue("headersRange")
+    private var dataRange = getValue("dataRange")
+    private var emailColumnName = getValue("emailColumnName")
+    private var fullNameColumnName = getValue("fullNameColumnName")
+    private var clubColumnName = getValue("clubColumnName")
+    private var clubCityColumnName = getValue("clubCityColumnName")
+    private var nominationsColumnName = getValue("nominationsColumnName")
+    private var nominationsDelimiter = getValue("nominationsDelimiter")
 
     fun getHeadersRange(): String = headersRange
     fun getDataRange(): String = dataRange
@@ -139,12 +137,45 @@ class ImportSettings(
         nominationsDelimiter: String = this.nominationsDelimiter
     ) {
         this.headersRange = headersRange
-        this.dataRange = dataRange;
-        this.emailColumnName = emailColumnName;
-        this.fullNameColumnName = nameColumnName;
-        this.clubColumnName = clubColumnName;
-        this.clubCityColumnName = clubCityColumnName;
-        this.nominationsColumnName = nominationsColumnName;
-        this.nominationsDelimiter = nominationsDelimiter;
+        this.dataRange = dataRange
+        this.emailColumnName = emailColumnName
+        this.fullNameColumnName = nameColumnName
+        this.clubColumnName = clubColumnName
+        this.clubCityColumnName = clubCityColumnName
+        this.nominationsColumnName = nominationsColumnName
+        this.nominationsDelimiter = nominationsDelimiter
+    }
+
+    override fun saveValuesToProperties() {
+        saveValue("headersRange", headersRange)
+        saveValue("dataRange", dataRange)
+        saveValue("emailColumnName", emailColumnName)
+        saveValue("fullNameColumnName", fullNameColumnName)
+        saveValue("clubColumnName", clubColumnName)
+        saveValue("clubCityColumnName", clubCityColumnName)
+        saveValue("nominationsColumnName", nominationsColumnName)
+        saveValue("nominationsDelimiter", nominationsDelimiter)
+    }
+
+    override fun loadValuesFromProperties() {
+        headersRange = getValue("headersRange")
+        dataRange = getValue("dataRange")
+        emailColumnName = getValue("emailColumnName")
+        fullNameColumnName = getValue("fullNameColumnName")
+        clubColumnName = getValue("clubColumnName")
+        clubCityColumnName = getValue("clubCityColumnName")
+        nominationsColumnName = getValue("nominationsColumnName")
+        nominationsDelimiter = getValue("nominationsDelimiter")
+    }
+
+    override fun resetToDefaults() {
+        headersRange = getDefaultValue("headersRange")
+        dataRange = getDefaultValue("dataRange")
+        emailColumnName = getDefaultValue("emailColumnName")
+        fullNameColumnName = getDefaultValue("fullNameColumnName")
+        clubColumnName = getDefaultValue("clubColumnName")
+        clubCityColumnName = getDefaultValue("clubCityColumnName")
+        nominationsColumnName = getDefaultValue("nominationsColumnName")
+        nominationsDelimiter = getDefaultValue("nominationsDelimiter")
     }
 }
