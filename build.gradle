@@ -53,6 +53,8 @@ dependencies {
 
     implementation 'org.apache.poi:poi:4.1.1'
 
+    implementation 'com.google.guava:guava:28.1-jre'
+
     testImplementation 'io.kotlintest:kotlintest-runner-junit5:3.4.2'
 }
 

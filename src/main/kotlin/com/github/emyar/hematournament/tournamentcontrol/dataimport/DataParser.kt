@@ -3,58 +3,52 @@ package com.github.emyar.hematournament.tournamentcontrol.dataimport
 import com.github.emyar.hematournament.tournamentcontrol.Settings
 import com.github.emyar.hematournament.tournamentcontrol.model.*
 
-class DataParser(private val provider: DataProvider) {
+object DataParser {
 
-    private val cities = mutableMapOf<String, City>()
-    private val clubs = mutableMapOf<String, Club>()
-    private val nominations = mutableMapOf<String, Nomination>()
+    fun parse(provider: DataProvider): Tournament {
+        val (data, info) = provider.getDataToParse()
 
-    fun parse(): Tournament {
-        val result = provider.getDataToParse()
-        val data = result.first
-        val info = result.second
+        val nominations = mutableMapOf<String, Nomination>()
+        val clubs = mutableMapOf<String, Club>()
+        val cities = mutableMapOf<String, City>()
 
-        return Tournament(data.map { row ->
-            Fighter(row[info.fighterEmailColumn],
-                    row[info.fighterNameColumn],
-                    getClub(row[info.fighterClubColumn], row[info.fighterCityColumn]),
-                    getNominations(row[info.fighterNominationsColumn]))
-        })
+        data.forEach { row ->
+            Fighter(
+                row[info.fighterEmailColumn],
+                row[info.fighterNameColumn],
+                getClub(row[info.fighterClubColumn], row[info.fighterCityColumn], clubs, cities)
+            ).apply {
+                parseNominations(row[info.fighterNominationsColumn], nominations)
+                    .forEach { it.addFighter(this) }
+            }
+        }
+
+        return Tournament(nominations.values)
     }
 
-    private fun getClub(clubName: String, cityName: String): Club {
+    private fun parseNominations(
+        nominationsString: String,
+        parsedNominations: MutableMap<String, Nomination>
+    ): Sequence<Nomination> =
+        nominationsString.split(Settings.importSettings.getNominationsDelimiter()).asSequence()
+            .map {
+                val name = it.trim()
+                parsedNominations[name]
+                    ?: Nomination(name).apply { parsedNominations[name] = this }
+            }
+
+    private fun getClub(
+        clubName: String,
+        cityName: String,
+        parsedClubs: MutableMap<String, Club>,
+        parsedCities: MutableMap<String, City>
+    ): Club {
         val key = clubName + cityName
-        return if (clubs.contains(key))
-            clubs[key]!!
-        else {
-            val club = Club(clubName, getCity(cityName))
-            clubs[key] = club
-            club
-        }
+        return parsedClubs[key]
+            ?: Club(clubName, getCity(cityName, parsedCities)).apply { parsedClubs[key] = this }
     }
 
-    private fun getCity(cityName: String): City {
-        return if (cities.contains(cityName))
-            cities[cityName]!!
-        else {
-            val club = City(cityName)
-            cities[cityName] = club
-            club
-        }
-    }
-
-    private fun getNominations(nominationsString: String): List<Nomination> {
-        return nominationsString.split(Settings.importSettings.getNominationsDelimiter()).asSequence()
-                .map {
-                    val nominationName = it.trim()
-                    if (nominations.contains(nominationName))
-                        nominations[nominationName]!!
-                    else {
-                        val nomination = Nomination(nominationName)
-                        nominations[nominationName] = nomination
-                        nomination
-                    }
-                }
-                .toList()
-    }
+    private fun getCity(cityName: String, parsedCities: MutableMap<String, City>): City =
+        parsedCities[cityName]
+            ?: City(cityName).apply { parsedCities[cityName] = this }
 }

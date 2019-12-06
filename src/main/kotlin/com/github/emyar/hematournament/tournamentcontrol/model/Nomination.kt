@@ -1,6 +1,18 @@
 package com.github.emyar.hematournament.tournamentcontrol.model
 
-import kotlinx.serialization.Serializable
+class Nomination(val name: String, fighters: Collection<Fighter> = emptyList()) {
 
-@Serializable
-data class Nomination(val name: String)
+    val fighters: List<Fighter> = fighters.toMutableList()
+
+    fun addFighter(fighter: Fighter) {
+        (fighters as MutableList<Fighter>).add(fighter)
+    }
+
+    override fun equals(other: Any?) =
+        this === other ||
+                other is Nomination && name == other.name
+
+    override fun hashCode() = name.hashCode()
+
+    override fun toString() = name
+}

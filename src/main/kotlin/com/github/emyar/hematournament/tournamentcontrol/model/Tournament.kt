@@ -1,6 +1,10 @@
 package com.github.emyar.hematournament.tournamentcontrol.model
 
-import kotlinx.serialization.Serializable
+class Tournament(nominations: Collection<Nomination>) {
 
-@Serializable
-data class Tournament(val fighters: List<Fighter>)
+    val nominations: List<Nomination> = nominations.toMutableList()
+
+    fun addNomination(nomination: Nomination) {
+        (nominations as MutableList).add(nomination)
+    }
+}

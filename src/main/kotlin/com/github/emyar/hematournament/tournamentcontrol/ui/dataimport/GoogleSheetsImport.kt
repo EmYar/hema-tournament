@@ -25,7 +25,7 @@ class GoogleSheetsImport : View("Import From Google Sheets") {
         checkbox("Save client secret") {  }
         buttonbar {
             button("Import") { action {
-                Model.tournament = DataParser(GoogleSheetDataProvider(spreadSheetId.value, clientSecret.value)).parse()
+                Model.tournament = DataParser.parse(GoogleSheetDataProvider(spreadSheetId.value, clientSecret.value))
             } }
             button("Cancel") { action { close() } }
         }
