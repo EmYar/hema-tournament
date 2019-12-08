@@ -4,22 +4,23 @@ import com.github.emyar.hematournament.tournamentcontrol.ui.dataimport.FileImpor
 import com.github.emyar.hematournament.tournamentcontrol.ui.dataimport.GoogleSheetsImport
 import com.github.emyar.hematournament.tournamentcontrol.ui.settings.SettingsWindow
 import tornadofx.*
+import tornadofx.FX.Companion.messages
 
-class MainWindow : View() {
+class MainWindow : View(messages["mainwindow.title"]) {
 
     override val root = borderpane {
         top = menubar {
-            menu("File") {
-                menu("Import") {
-                    item("From Google Sheets") { action { GoogleSheetsImport.show() } }
-                    item("From file") { action { FileImport.show() } }
+            menu(messages["menu.file"]) {
+                menu(messages["menu.file.import"]) {
+                    item(messages["menu.file.import.googlesheets"]) { action { GoogleSheetsImport.show() } }
+                    item(messages["menu.file.import.file"]) { action { FileImport.show() } }
                 }
             }
-            menu("Edit") {
-                item("Settings") { action { SettingsWindow.show() } }
+            menu(messages["menu.edit"]) {
+                item(messages["menu.edit.settings"]) { action { SettingsWindow.show() } }
             }
-            menu("Help") {
-                item("About") { action { TODO("Not yet implemented") } }
+            menu(messages["menu.help"]) {
+                item(messages["menu.help.about"]) { action { TODO("Not yet implemented") } }
             }
         }
     }

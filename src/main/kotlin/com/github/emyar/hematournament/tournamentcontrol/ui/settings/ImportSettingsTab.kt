@@ -3,8 +3,9 @@ package com.github.emyar.hematournament.tournamentcontrol.ui.settings
 import com.github.emyar.hematournament.tournamentcontrol.Settings
 import javafx.beans.property.SimpleStringProperty
 import tornadofx.*
+import tornadofx.FX.Companion.messages
 
-class ImportSettingsTab : View("Import") {
+class ImportSettingsTab : View(messages["settingswindow.tabs.importsettings"]) {
 
     private val headersRange = SimpleStringProperty(Settings.importSettings.getHeadersRange())
     private val dataRange = SimpleStringProperty(Settings.importSettings.getDataRange())
@@ -17,16 +18,16 @@ class ImportSettingsTab : View("Import") {
 
     override val root = form {
         fieldset {
-            field("Headers range") { textfield(headersRange) }
-            field("Data range") { textfield(dataRange) }
-            field("Fighter Email column name") { textfield(emailColumnName) }
-            field("Fighter Name column name") { textfield(fullNameColumnName) }
-            field("Fighter Club column name") { textfield(clubColumnName) }
-            field("Fighter Club City column name") { textfield(clubCityColumnName) }
-            field("Fighter Nominations column name") { textfield(nominationsColumnName) }
-            field("Fighter Nominations Delimiter column name") { textfield(nominationsDelimiter) }
+            field(messages["fields.headers"]) { textfield(headersRange) }
+            field(messages["fields.datarange"]) { textfield(dataRange) }
+            field(messages["fields.email"]) { textfield(emailColumnName) }
+            field(messages["fields.name"]) { textfield(fullNameColumnName) }
+            field(messages["fields.club"]) { textfield(clubColumnName) }
+            field(messages["fields.city"]) { textfield(clubCityColumnName) }
+            field(messages["fields.nominations"]) { textfield(nominationsColumnName) }
+            field(messages["fields.delimiter"]) { textfield(nominationsDelimiter) }
         }
-        button("Reset to default").action { resetToDefaults() }
+        button(messages["buttons.reset"]).action { resetToDefaults() }
     }
 
     private fun resetToDefaults() {

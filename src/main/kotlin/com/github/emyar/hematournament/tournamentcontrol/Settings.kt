@@ -1,5 +1,6 @@
 package com.github.emyar.hematournament.tournamentcontrol
 
+import com.github.emyar.hematournament.tournamentcontrol.util.immutableMapOf
 import org.intellij.lang.annotations.Language
 import java.io.FileReader
 import java.io.FileWriter
@@ -69,30 +70,40 @@ abstract class SettingsSection(
 class CommonSettings(currentProperties: Properties, defaultProperties: Properties) :
     SettingsSection("", currentProperties, defaultProperties) {
 
-    companion object {
-        val supportedLocales = setOf(Locale("en", "EN"), Locale("ru", "RU"))
+    enum class Language(val langName: String, val locale: Locale) {
+
+        RU("Russian", Locale("ru")),
+        EN("English", Locale.US);
+
+        companion object {
+            val SUPPORTED_LANGUAGES = immutableMapOf(Language::langName, *values())
+        }
+
+        override fun toString() = langName
     }
 
-    private lateinit var language: String
+    private lateinit var language: Language
 
-    fun getLocale(): Locale = supportedLocales.first { it.language == language }
+    fun getLanguage() = language
 
-    fun setLanguage(language: String) {
-        if (supportedLocales.none { it.language == language })
-            throw IllegalArgumentException("Language '$language' is not in supported list: $supportedLocales")
+    fun setLanguage(language: Language) {
         this.language = language
     }
 
     override fun saveValuesToProperties() {
-        saveValue("language", language)
+        saveValue("language", language.toString())
     }
 
     override fun loadValuesFromProperties() {
-        language = getValue("language")
+        getValue("language").let {
+            language = Language.SUPPORTED_LANGUAGES[it] ?: error("Not supported language loaded from settings: $it")
+        }
     }
 
     override fun resetToDefaults() {
-        language = getDefaultValue("language")
+        getDefaultValue("language").let {
+            language = Language.SUPPORTED_LANGUAGES[it] ?: error("Not supported language loaded from default settings: $it")
+        }
     }
 }
 
